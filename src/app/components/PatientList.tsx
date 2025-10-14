@@ -26,7 +26,7 @@ export default function PatientList() {
       const data = await getPatients();
       setPatients(data);
       setError(null);
-    } catch (err: any) {
+    } catch (err) {
       setError('Failed to fetch patients');
       console.error(err);
     } finally {

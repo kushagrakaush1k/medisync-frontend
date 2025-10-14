@@ -45,8 +45,9 @@ export default function UploadCSV({ onUploadSuccess }: UploadCSVProps) {
       if (onUploadSuccess) {
         setTimeout(onUploadSuccess, 1000);
       }
-    } catch (err: any) {
-      setMessage(`Upload failed: ${err.response?.data?.detail || err.message}`);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Upload failed';
+      setMessage(`Upload failed: ${errorMessage}`);
       setUploadStatus('error');
     } finally {
       setLoading(false);

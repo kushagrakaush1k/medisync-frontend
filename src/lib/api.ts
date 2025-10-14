@@ -10,6 +10,15 @@ const api = axios.create({
   },
 });
 
+// Define Patient type
+interface PatientData {
+  patient_id?: string;
+  first_name: string;
+  last_name: string;
+  date_of_birth: string;
+  gender: string;
+}
+
 // Patient endpoints
 export const getPatients = async (skip = 0, limit = 100) => {
   const response = await api.get('/patients/', {
@@ -23,7 +32,7 @@ export const getPatient = async (patientId: string) => {
   return response.data;
 };
 
-export const createPatient = async (patientData: any) => {
+export const createPatient = async (patientData: PatientData) => {
   const response = await api.post('/patients/', patientData);
   return response.data;
 };

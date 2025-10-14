@@ -13,7 +13,7 @@ export default function Home() {
       try {
         const data = await getPatientCount();
         setPatientCount(data.total_patients);
-      } catch (err) {
+      } catch {
         console.error('Failed to fetch patient count');
       } finally {
         setLoading(false);
