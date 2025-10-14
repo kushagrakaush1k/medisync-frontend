@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import PatientList from '../components/PatientList';
 import AddPatient from '../components/AddPatient';
 import UploadCSV from '../components/UploadCSV';
 
-export default function PatientsPage() {
+function PatientsPageContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
   
@@ -84,5 +84,13 @@ export default function PatientsPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function PatientsPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-12">Loading...</div>}>
+      <PatientsPageContent />
+    </Suspense>
   );
 }
