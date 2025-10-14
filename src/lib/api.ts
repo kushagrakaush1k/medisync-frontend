@@ -33,7 +33,16 @@ export const getPatient = async (patientId: string) => {
 };
 
 export const createPatient = async (patientData: PatientData) => {
-  const response = await api.post('/patients/', patientData);
+  // Transform the data to match backend schema
+  const backendData = {
+    id: patientData.patient_id, // Backend expects 'id', not 'patient_id'
+    first_name: patientData.first_name,
+    last_name: patientData.last_name,
+    date_of_birth: patientData.date_of_birth,
+    gender: patientData.gender.toLowerCase(), // Convert 'M' to 'm', 'F' to 'f', etc.
+  };
+  
+  const response = await api.post('/patients/', backendData);
   return response.data;
 };
 
