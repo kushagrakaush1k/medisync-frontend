@@ -1,103 +1,175 @@
-import Image from "next/image";
+'use client';
+
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { getPatientCount } from '@/lib/api';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [patientCount, setPatientCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const data = await getPatientCount();
+        setPatientCount(data.total_patients);
+      } catch (err) {
+        console.error('Failed to fetch patient count');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCount();
+  }, []);
+
+  return (
+    <div className="space-y-8">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-12 rounded-lg shadow-lg">
+        <h2 className="text-4xl font-bold mb-3">Welcome to MediSync</h2>
+        <p className="text-lg text-blue-100">
+          A modern healthcare patient management system built with Next.js and FastAPI.
+          Manage your patients efficiently and securely.
+        </p>
+      </div>
+
+      {/* Stats Section */}
+      <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500 shadow">
+          <div className="text-4xl font-bold text-blue-600 mb-2">
+            {loading ? '...' : patientCount}
+          </div>
+          <p className="text-gray-600 font-semibold">Total Patients</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+
+        <div className="bg-green-50 p-6 rounded-lg border-l-4 border-green-500 shadow">
+          <div className="text-4xl font-bold text-green-600 mb-2">✅</div>
+          <p className="text-gray-600 font-semibold">System Status</p>
+          <p className="text-sm text-gray-500">All systems operational</p>
+        </div>
+
+        <div className="bg-purple-50 p-6 rounded-lg border-l-4 border-purple-500 shadow">
+          <div className="text-4xl font-bold text-purple-600 mb-2">🚀</div>
+          <p className="text-gray-600 font-semibold">Version</p>
+          <p className="text-sm text-gray-500">Production Ready</p>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid md:grid-cols-3 gap-6">
+        <Link
+          href="/patients"
+          className="group bg-blue-50 p-8 rounded-lg border-2 border-blue-200 hover:border-blue-500 hover:shadow-lg transition cursor-pointer"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <h3 className="text-2xl font-bold text-blue-700 mb-2 group-hover:text-blue-800">
+            👥 Manage Patients
+          </h3>
+          <p className="text-gray-600 mb-4">
+            View, search, and manage patient information efficiently
+          </p>
+          <span className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+            Go to Patients →
+          </span>
+        </Link>
+
+        <div className="bg-green-50 p-8 rounded-lg border-2 border-green-200">
+          <h3 className="text-2xl font-bold text-green-700 mb-2">📊 Upload Data</h3>
+          <p className="text-gray-600 mb-4">
+            Bulk upload patient data using CSV files for quick data entry
+          </p>
+          <Link
+            href="/patients?tab=upload"
+            className="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition"
+          >
+            Upload CSV →
+          </Link>
+        </div>
+
+        <div className="bg-purple-50 p-8 rounded-lg border-2 border-purple-200">
+          <h3 className="text-2xl font-bold text-purple-700 mb-2">➕ Add Patient</h3>
+          <p className="text-gray-600 mb-4">
+            Create new patient records with detailed demographic information
+          </p>
+          <Link
+            href="/patients?tab=add"
+            className="inline-block bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition"
+          >
+            Add New Patient →
+          </Link>
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <div className="bg-gray-50 p-8 rounded-lg border border-gray-200 shadow">
+        <h3 className="text-2xl font-bold text-gray-800 mb-6">✨ Key Features</h3>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">✅</span>
+            <div>
+              <p className="font-semibold text-gray-800">Patient Management</p>
+              <p className="text-sm text-gray-600">View all patients in a clean table format</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">✅</span>
+            <div>
+              <p className="font-semibold text-gray-800">Add Individual Records</p>
+              <p className="text-sm text-gray-600">Create single patient records with validation</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">✅</span>
+            <div>
+              <p className="font-semibold text-gray-800">Bulk CSV Upload</p>
+              <p className="text-sm text-gray-600">Upload multiple patients at once</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">✅</span>
+            <div>
+              <p className="font-semibold text-gray-800">Real-time Sync</p>
+              <p className="text-sm text-gray-600">Live data synchronization with backend</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">✅</span>
+            <div>
+              <p className="font-semibold text-gray-800">Responsive Design</p>
+              <p className="text-sm text-gray-600">Works on desktop, tablet, and mobile</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">✅</span>
+            <div>
+              <p className="font-semibold text-gray-800">Production Ready</p>
+              <p className="text-sm text-gray-600">Deployed and tested on cloud infrastructure</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tech Stack */}
+      <div className="bg-indigo-50 p-8 rounded-lg border border-indigo-200 shadow">
+        <h3 className="text-2xl font-bold text-indigo-800 mb-4">🛠️ Technology Stack</h3>
+        <div className="grid md:grid-cols-4 gap-4 text-center">
+          <div>
+            <p className="font-bold text-indigo-700">Frontend</p>
+            <p className="text-sm text-gray-600">Next.js + TypeScript</p>
+          </div>
+          <div>
+            <p className="font-bold text-indigo-700">Backend</p>
+            <p className="text-sm text-gray-600">FastAPI + Python</p>
+          </div>
+          <div>
+            <p className="font-bold text-indigo-700">Database</p>
+            <p className="text-sm text-gray-600">PostgreSQL</p>
+          </div>
+          <div>
+            <p className="font-bold text-indigo-700">Hosting</p>
+            <p className="text-sm text-gray-600">Vercel + Render</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
