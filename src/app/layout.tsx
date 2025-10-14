@@ -24,7 +24,7 @@ export default function RootLayout({
 
           <footer className="text-center text-gray-600 text-sm mt-8">
             <p>Backend API: {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}</p>
-            <p className="mt-2">© 2024 MediSync - Healthcare Patient Management</p>
+            <p className="mt-2">© 2025 MediSync - Healthcare Patient Management built by Kush</p>
           </footer>
         </div>
       </body>
