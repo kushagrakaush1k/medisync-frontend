@@ -8,7 +8,7 @@ interface AddPatientProps {
 }
 
 interface FormData {
-  id: string;
+  patient_id: string;
   first_name: string;
   last_name: string;
   date_of_birth: string;
@@ -17,7 +17,7 @@ interface FormData {
 
 export default function AddPatient({ onPatientAdded }: AddPatientProps) {
   const [formData, setFormData] = useState<FormData>({
-    id: '',
+    patient_id: '',
     first_name: '',
     last_name: '',
     date_of_birth: '',
@@ -38,7 +38,7 @@ export default function AddPatient({ onPatientAdded }: AddPatientProps) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!formData.id || !formData.first_name || !formData.last_name || !formData.date_of_birth) {
+    if (!formData.patient_id || !formData.first_name || !formData.last_name || !formData.date_of_birth) {
       setMessage('All fields are required');
       setMessageType('error');
       return;
@@ -52,7 +52,7 @@ export default function AddPatient({ onPatientAdded }: AddPatientProps) {
       setMessageType('success');
       
       setFormData({
-        id: '',
+        patient_id: '',
         first_name: '',
         last_name: '',
         date_of_birth: '',
@@ -62,8 +62,9 @@ export default function AddPatient({ onPatientAdded }: AddPatientProps) {
       if (onPatientAdded) {
         setTimeout(onPatientAdded, 1000);
       }
-    } catch (err: any) {
-      setMessage(`Error: ${err.response?.data?.detail || err.message}`);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add patient';
+      setMessage(`Error: ${errorMessage}`);
       setMessageType('error');
     } finally {
       setLoading(false);
@@ -79,8 +80,8 @@ export default function AddPatient({ onPatientAdded }: AddPatientProps) {
           <label className="block font-semibold text-gray-700 mb-1">Patient ID:</label>
           <input
             type="text"
-            name="id"
-            value={formData.id}
+            name="patient_id"
+            value={formData.patient_id}
             onChange={handleChange}
             placeholder="e.g., P001"
             disabled={loading}
