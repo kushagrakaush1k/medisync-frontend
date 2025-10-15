@@ -1,65 +1,222 @@
-import axios from 'axios';
+/**
+ * API Client with Authentication & Error Handling
+ */
 
-// Get backend URL from environment
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
 
-// Define Patient type
-interface PatientData {
-  patient_id?: string;
-  first_name: string;
-  last_name: string;
-  date_of_birth: string;
-  gender: string;
+class APIClient {
+  private client: AxiosInstance;
+
+  constructor() {
+    this.client = axios.create({
+      baseURL: API_BASE_URL,
+      timeout: 30000,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    // Request interceptor for adding auth token
+    this.client.interceptors.request.use(
+      (config) => {
+        const token = this.getAuthToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    // Response interceptor for error handling
+    this.client.interceptors.response.use(
+      (response) => response,
+      (error: AxiosError) => {
+        return this.handleError(error);
+      }
+    );
+  }
+
+  private getAuthToken(): string | null {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('auth_token');
+    }
+    return null;
+  }
+
+  private handleError(error: AxiosError): Promise<never> {
+    if (error.response) {
+      // Server responded with error
+      const status = error.response.status;
+      const message = (error.response.data as any)?.message || error.message;
+
+      switch (status) {
+        case 401:
+          // Unauthorized - redirect to login
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('auth_token');
+            window.location.href = '/login';
+          }
+          break;
+        case 403:
+          console.error('Forbidden:', message);
+          break;
+        case 404:
+          console.error('Not Found:', message);
+          break;
+        case 500:
+          console.error('Server Error:', message);
+          break;
+        default:
+          console.error('API Error:', message);
+      }
+
+      return Promise.reject({
+        status,
+        message,
+        data: error.response.data,
+      });
+    } else if (error.request) {
+      // Request made but no response
+      console.error('Network Error:', error.message);
+      return Promise.reject({
+        status: 0,
+        message: 'Network error. Please check your connection.',
+      });
+    } else {
+      // Something else happened
+      console.error('Error:', error.message);
+      return Promise.reject({
+        status: 0,
+        message: error.message,
+      });
+    }
+  }
+
+  // Generic request methods
+  async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.get<T>(url, config);
+    return response.data;
+  }
+
+  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.post<T>(url, data, config);
+    return response.data;
+  }
+
+  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.put<T>(url, data, config);
+    return response.data;
+  }
+
+  async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.patch<T>(url, data, config);
+    return response.data;
+  }
+
+  async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.delete<T>(url, config);
+    return response.data;
+  }
 }
 
-// Patient endpoints
-export const getPatients = async (skip = 0, limit = 100) => {
-  const response = await api.get('/patients/', {
-    params: { skip, limit },
-  });
-  return response.data;
-};
+// Create singleton instance
+const api = new APIClient();
 
-export const getPatient = async (patientId: string) => {
-  const response = await api.get(`/patients/${patientId}`);
-  return response.data;
-};
-
-export const createPatient = async (patientData: PatientData) => {
-  // Transform the data to match backend schema
-  const backendData = {
-    id: patientData.patient_id, // Backend expects 'id', not 'patient_id'
-    first_name: patientData.first_name,
-    last_name: patientData.last_name,
-    date_of_birth: patientData.date_of_birth,
-    gender: patientData.gender.toLowerCase(), // Convert 'M' to 'm', 'F' to 'f', etc.
-  };
+// Export API methods
+export const apiClient = {
+  // Authentication
+  login: (credentials: { email: string; password: string }) =>
+    api.post('/auth/login', credentials),
   
-  const response = await api.post('/patients/', backendData);
-  return response.data;
-};
+  logout: () => api.post('/auth/logout'),
+  
+  getCurrentUser: () => api.get('/auth/me'),
 
-export const uploadCSV = async (file: File) => {
-  const formData = new FormData();
-  formData.append('file', file);
-  const response = await api.post('/patients/upload/csv', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
-  return response.data;
-};
+  // Patients
+  getPatients: (params?: any) => api.get('/patients', { params }),
+  
+  getPatientById: (id: string) => api.get(`/patients/${id}`),
+  
+  createPatient: (data: any) => api.post('/patients', data),
+  
+  updatePatient: (id: string, data: any) => api.put(`/patients/${id}`, data),
+  
+  deletePatient: (id: string) => api.delete(`/patients/${id}`),
 
-export const getPatientCount = async () => {
-  const response = await api.get('/stats/patient-count');
-  return response.data;
+  // Patient Clinical Data
+  getPatientVitals: (patientId: string, params?: any) =>
+    api.get(`/patients/${patientId}/vitals`, { params }),
+  
+  addVitalSign: (patientId: string, data: any) =>
+    api.post(`/patients/${patientId}/vitals`, data),
+
+  getPatientMedications: (patientId: string) =>
+    api.get(`/patients/${patientId}/medications`),
+  
+  addMedication: (patientId: string, data: any) =>
+    api.post(`/patients/${patientId}/medications`, data),
+
+  getPatientConditions: (patientId: string) =>
+    api.get(`/patients/${patientId}/conditions`),
+  
+  addCondition: (patientId: string, data: any) =>
+    api.post(`/patients/${patientId}/conditions`, data),
+
+  getPatientEncounters: (patientId: string) =>
+    api.get(`/patients/${patientId}/encounters`),
+  
+  addEncounter: (patientId: string, data: any) =>
+    api.post(`/patients/${patientId}/encounters`, data),
+
+  getPatientLabResults: (patientId: string) =>
+    api.get(`/patients/${patientId}/lab-results`),
+
+  // Analytics
+  getPopulationMetrics: (filters?: any) =>
+    api.get('/analytics/population', { params: filters }),
+  
+  getCohortAnalysis: (cohortId: string) =>
+    api.get(`/analytics/cohorts/${cohortId}`),
+  
+  getQualityMetrics: () => api.get('/analytics/quality'),
+  
+  getUtilizationTrends: (params?: any) =>
+    api.get('/analytics/utilization', { params }),
+
+  // AI Assistant
+  getRiskAssessment: (patientId: string) =>
+    api.get(`/ai/risk-assessment/${patientId}`),
+  
+  getDiagnosisSuggestions: (symptoms: string[]) =>
+    api.post('/ai/diagnosis', { symptoms }),
+  
+  getTreatmentRecommendations: (patientId: string, conditionId: string) =>
+    api.post('/ai/treatment', { patientId, conditionId }),
+
+  // FHIR Operations
+  exportPatientFHIR: (patientId: string) =>
+    api.get(`/fhir/Patient/${patientId}/$export`),
+  
+  bulkExportFHIR: (params?: any) =>
+    api.get('/fhir/$export', { params }),
+
+  // CSV Import
+  importCSV: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/import/csv', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  // Audit Logs
+  getAuditLogs: (params?: any) =>
+    api.get('/audit/logs', { params }),
 };
 
 export default api;

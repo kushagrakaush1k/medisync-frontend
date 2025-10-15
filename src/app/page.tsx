@@ -1,175 +1,244 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
-import { getPatientCount } from '@/lib/api';
+import { 
+  Users, 
+  Activity, 
+  FileText, 
+  TrendingUp, 
+  AlertCircle,
+  ChevronRight,
+  Heart,
+  Pill,
+  Calendar
+} from 'lucide-react';
 
-export default function Home() {
-  const [patientCount, setPatientCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+export default function HomePage() {
+  const [stats] = useState({
+    totalPatients: 12458,
+    activePatients: 8932,
+    highRiskPatients: 342,
+    recentEncounters: 1284,
+  });
 
-  useEffect(() => {
-    const fetchCount = async () => {
-      try {
-        const data = await getPatientCount();
-        setPatientCount(data.total_patients);
-      } catch {
-        console.error('Failed to fetch patient count');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCount();
-  }, []);
+  const quickActions = [
+    {
+      title: 'View Patients',
+      description: 'Access patient records and clinical data',
+      icon: Users,
+      href: '/patients',
+      color: 'bg-blue-500',
+    },
+    {
+      title: 'Analytics Dashboard',
+      description: 'Population health metrics and insights',
+      icon: TrendingUp,
+      href: '/analytics',
+      color: 'bg-green-500',
+    },
+    {
+      title: 'AI Assistant',
+      description: 'Clinical decision support and risk assessment',
+      icon: Activity,
+      href: '/ai-assistant',
+      color: 'bg-purple-500',
+    },
+    {
+      title: 'FHIR Export',
+      description: 'Export data in FHIR R4 format',
+      icon: FileText,
+      href: '/admin',
+      color: 'bg-orange-500',
+    },
+  ];
+
+  const recentAlerts = [
+    {
+      id: 1,
+      patient: 'Johnson, Mary',
+      message: 'Critical lab value: Glucose 245 mg/dL',
+      severity: 'high',
+      time: '5 minutes ago',
+    },
+    {
+      id: 2,
+      patient: 'Smith, John',
+      message: 'Medication refill due in 3 days',
+      severity: 'medium',
+      time: '1 hour ago',
+    },
+    {
+      id: 3,
+      patient: 'Davis, Sarah',
+      message: 'Overdue for annual wellness visit',
+      severity: 'low',
+      time: '2 hours ago',
+    },
+  ];
 
   return (
-    <div className="space-y-8">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-12 rounded-lg shadow-lg">
-        <h2 className="text-4xl font-bold mb-3">Welcome to MediSync</h2>
-        <p className="text-lg text-blue-100">
-          A modern healthcare patient management system built with Next.js and FastAPI.
-          Manage your patients efficiently and securely.
-        </p>
-      </div>
-
-      {/* Stats Section */}
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500 shadow">
-          <div className="text-4xl font-bold text-blue-600 mb-2">
-            {loading ? '...' : patientCount}
-          </div>
-          <p className="text-gray-600 font-semibold">Total Patients</p>
-        </div>
-
-        <div className="bg-green-50 p-6 rounded-lg border-l-4 border-green-500 shadow">
-          <div className="text-4xl font-bold text-green-600 mb-2">✅</div>
-          <p className="text-gray-600 font-semibold">System Status</p>
-          <p className="text-sm text-gray-500">All systems operational</p>
-        </div>
-
-        <div className="bg-purple-50 p-6 rounded-lg border-l-4 border-purple-500 shadow">
-          <div className="text-4xl font-bold text-purple-600 mb-2">🚀</div>
-          <p className="text-gray-600 font-semibold">Version</p>
-          <p className="text-sm text-gray-500">Production Ready</p>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid md:grid-cols-3 gap-6">
-        <Link
-          href="/patients"
-          className="group bg-blue-50 p-8 rounded-lg border-2 border-blue-200 hover:border-blue-500 hover:shadow-lg transition cursor-pointer"
-        >
-          <h3 className="text-2xl font-bold text-blue-700 mb-2 group-hover:text-blue-800">
-            👥 Manage Patients
-          </h3>
-          <p className="text-gray-600 mb-4">
-            View, search, and manage patient information efficiently
-          </p>
-          <span className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
-            Go to Patients →
-          </span>
-        </Link>
-
-        <div className="bg-green-50 p-8 rounded-lg border-2 border-green-200">
-          <h3 className="text-2xl font-bold text-green-700 mb-2">📊 Upload Data</h3>
-          <p className="text-gray-600 mb-4">
-            Bulk upload patient data using CSV files for quick data entry
-          </p>
-          <Link
-            href="/patients?tab=upload"
-            className="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition"
-          >
-            Upload CSV →
-          </Link>
-        </div>
-
-        <div className="bg-purple-50 p-8 rounded-lg border-2 border-purple-200">
-          <h3 className="text-2xl font-bold text-purple-700 mb-2">➕ Add Patient</h3>
-          <p className="text-gray-600 mb-4">
-            Create new patient records with detailed demographic information
-          </p>
-          <Link
-            href="/patients?tab=add"
-            className="inline-block bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition"
-          >
-            Add New Patient →
-          </Link>
-        </div>
-      </div>
-
-      {/* Features Section */}
-      <div className="bg-gray-50 p-8 rounded-lg border border-gray-200 shadow">
-        <h3 className="text-2xl font-bold text-gray-800 mb-6">✨ Key Features</h3>
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">✅</span>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
             <div>
-              <p className="font-semibold text-gray-800">Patient Management</p>
-              <p className="text-sm text-gray-600">View all patients in a clean table format</p>
+              <h1 className="text-3xl font-bold text-gray-900">MediSync</h1>
+              <p className="text-sm text-gray-500 mt-1">Enterprise Healthcare Platform</p>
             </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">✅</span>
-            <div>
-              <p className="font-semibold text-gray-800">Add Individual Records</p>
-              <p className="text-sm text-gray-600">Create single patient records with validation</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">✅</span>
-            <div>
-              <p className="font-semibold text-gray-800">Bulk CSV Upload</p>
-              <p className="text-sm text-gray-600">Upload multiple patients at once</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">✅</span>
-            <div>
-              <p className="font-semibold text-gray-800">Real-time Sync</p>
-              <p className="text-sm text-gray-600">Live data synchronization with backend</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">✅</span>
-            <div>
-              <p className="font-semibold text-gray-800">Responsive Design</p>
-              <p className="text-sm text-gray-600">Works on desktop, tablet, and mobile</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">✅</span>
-            <div>
-              <p className="font-semibold text-gray-800">Production Ready</p>
-              <p className="text-sm text-gray-600">Deployed and tested on cloud infrastructure</p>
+            <div className="flex items-center gap-4">
+              <button className="btn btn-secondary">
+                Settings
+              </button>
+              <button className="btn btn-primary">
+                New Patient
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Tech Stack */}
-      <div className="bg-indigo-50 p-8 rounded-lg border border-indigo-200 shadow">
-        <h3 className="text-2xl font-bold text-indigo-800 mb-4">🛠️ Technology Stack</h3>
-        <div className="grid md:grid-cols-4 gap-4 text-center">
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="card card-hover">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Patients</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">
+                  {stats.totalPatients.toLocaleString()}
+                </p>
+              </div>
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <Users className="w-8 h-8 text-blue-600" />
+              </div>
+            </div>
+            <p className="text-sm text-gray-500 mt-4">↑ 12% from last month</p>
+          </div>
+
+          <div className="card card-hover">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Patients</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">
+                  {stats.activePatients.toLocaleString()}
+                </p>
+              </div>
+              <div className="p-3 bg-green-100 rounded-lg">
+                <Heart className="w-8 h-8 text-green-600" />
+              </div>
+            </div>
+            <p className="text-sm text-gray-500 mt-4">71.7% of total</p>
+          </div>
+
+          <div className="card card-hover">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">High Risk</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">
+                  {stats.highRiskPatients.toLocaleString()}
+                </p>
+              </div>
+              <div className="p-3 bg-red-100 rounded-lg">
+                <AlertCircle className="w-8 h-8 text-red-600" />
+              </div>
+            </div>
+            <p className="text-sm text-gray-500 mt-4">Requires attention</p>
+          </div>
+
+          <div className="card card-hover">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Encounters (30d)</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">
+                  {stats.recentEncounters.toLocaleString()}
+                </p>
+              </div>
+              <div className="p-3 bg-purple-100 rounded-lg">
+                <Calendar className="w-8 h-8 text-purple-600" />
+              </div>
+            </div>
+            <p className="text-sm text-gray-500 mt-4">↑ 8% from last month</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Quick Actions */}
+          <div className="lg:col-span-2">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {quickActions.map((action, index) => (
+                <Link key={index} href={action.href}>
+                  <div className="card card-hover cursor-pointer group">
+                    <div className="flex items-start justify-between">
+                      <div className={`p-3 ${action.color} rounded-lg`}>
+                        <action.icon className="w-6 h-6 text-white" />
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mt-4">
+                      {action.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-2">{action.description}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Recent Alerts */}
           <div>
-            <p className="font-bold text-indigo-700">Frontend</p>
-            <p className="text-sm text-gray-600">Next.js + TypeScript</p>
-          </div>
-          <div>
-            <p className="font-bold text-indigo-700">Backend</p>
-            <p className="text-sm text-gray-600">FastAPI + Python</p>
-          </div>
-          <div>
-            <p className="font-bold text-indigo-700">Database</p>
-            <p className="text-sm text-gray-600">PostgreSQL</p>
-          </div>
-          <div>
-            <p className="font-bold text-indigo-700">Hosting</p>
-            <p className="text-sm text-gray-600">Vercel + Render</p>
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Recent Alerts</h2>
+            <div className="card">
+              <div className="space-y-4">
+                {recentAlerts.map((alert) => (
+                  <div
+                    key={alert.id}
+                    className="pb-4 border-b border-gray-200 last:border-b-0 last:pb-0"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <span
+                        className={`badge ${
+                          alert.severity === 'high'
+                            ? 'badge-danger'
+                            : alert.severity === 'medium'
+                            ? 'badge-warning'
+                            : 'badge-info'
+                        }`}
+                      >
+                        {alert.severity}
+                      </span>
+                      <span className="text-xs text-gray-500">{alert.time}</span>
+                    </div>
+                    <p className="text-sm font-medium text-gray-900">{alert.patient}</p>
+                    <p className="text-sm text-gray-600 mt-1">{alert.message}</p>
+                  </div>
+                ))}
+              </div>
+              <button className="w-full mt-4 text-sm text-primary-600 font-medium hover:text-primary-700">
+                View All Alerts →
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+
+        {/* Feature Banner */}
+        <div className="mt-8 card bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-bold mb-2">FHIR R4 Compliant</h3>
+              <p className="text-blue-100">
+                Full interoperability with industry-standard healthcare data formats
+              </p>
+            </div>
+            <Link href="/admin" className="btn bg-white text-blue-600 hover:bg-blue-50">
+              Learn More
+            </Link>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
