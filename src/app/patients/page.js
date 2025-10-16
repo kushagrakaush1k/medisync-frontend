@@ -1,8 +1,8 @@
 'use client';
 
-import { patientAPI } from '@/services/api';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { patientAPI } from '@/services/api';
 import {
   Search,
   Filter,
@@ -14,34 +14,35 @@ import {
   Calendar,
   Phone,
   Mail,
+  Loader2,
 } from 'lucide-react';
 
 export default function PatientsPage() {
   const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterRisk, setFilterRisk] = useState('all');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   // Fetch patients on component mount
   useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        setLoading(true);
-        const data = await patientAPI.getAll();
-        setPatients(data);
-        setError(null);
-      } catch (err) {
-        setError(err.message);
-        console.error('Failed to fetch patients:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchPatients();
   }, []);
+
+  const fetchPatients = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await patientAPI.getAll();
+      setPatients(data);
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to fetch patients:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const calculateAge = (dob) => {
     const today = new Date();
@@ -69,9 +70,9 @@ export default function PatientsPage() {
 
   const filteredPatients = patients.filter((patient) => {
     const matchesSearch =
-      patient.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      patient.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      patient.mrn?.toLowerCase().includes(searchQuery.toLowerCase());
+      patient.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      patient.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      patient.mrn.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus = filterStatus === 'all' || patient.status === filterStatus;
     const matchesRisk = filterRisk === 'all' || patient.riskLevel === filterRisk;
@@ -82,9 +83,9 @@ export default function PatientsPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600 mx-auto mb-4"></div>
+          <Loader2 className="h-12 w-12 animate-spin text-cyan-600 mx-auto mb-4" />
           <p className="text-gray-600">Loading patients...</p>
         </div>
       </div>
@@ -94,21 +95,17 @@ export default function PatientsPage() {
   // Error state
   if (error) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
-          <div className="flex items-start">
-            <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 mr-3" />
-            <div>
-              <h3 className="text-red-900 font-semibold mb-2">Error Loading Patients</h3>
-              <p className="text-red-700 text-sm">{error}</p>
-              <button 
-                onClick={() => window.location.reload()}
-                className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
-              >
-                Retry
-              </button>
-            </div>
-          </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Failed to Load Patients</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={fetchPatients}
+            className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
@@ -237,9 +234,6 @@ export default function PatientsPage() {
                   Contact
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Visit
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Risk Level
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -257,8 +251,8 @@ export default function PatientsPage() {
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
                         <span className="text-white font-semibold text-sm">
-                          {patient.firstName?.[0]}
-                          {patient.lastName?.[0]}
+                          {patient.firstName[0]}
+                          {patient.lastName[0]}
                         </span>
                       </div>
                       <div className="ml-4">
@@ -285,9 +279,6 @@ export default function PatientsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{patient.lastVisit}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRiskBadgeColor(
                         patient.riskLevel
@@ -303,7 +294,7 @@ export default function PatientsPage() {
                           key={idx}
                           className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
                         >
-                          {condition}
+                          {condition.name}
                         </span>
                       ))}
                     </div>
@@ -321,40 +312,6 @@ export default function PatientsPage() {
               ))}
             </tbody>
           </table>
-        </div>
-      </div>
-
-      {/* Pagination */}
-      <div className="flex items-center justify-between bg-white px-4 py-3 rounded-lg border border-gray-200">
-        <div className="flex-1 flex justify-between sm:hidden">
-          <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-            Previous
-          </button>
-          <button className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-            Next
-          </button>
-        </div>
-        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm text-gray-700">
-              Showing <span className="font-medium">1</span> to{' '}
-              <span className="font-medium">{filteredPatients.length}</span> of{' '}
-              <span className="font-medium">{patients.length}</span> results
-            </p>
-          </div>
-          <div>
-            <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-              <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                Previous
-              </button>
-              <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                1
-              </button>
-              <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                Next
-              </button>
-            </nav>
-          </div>
         </div>
       </div>
     </div>

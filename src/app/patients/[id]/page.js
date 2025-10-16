@@ -33,11 +33,53 @@ export default function PatientDetailPage() {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
 
-  useEffect(() => {
-    const fetchPatientData = async () => {
-      try {
-        setLoading(true);
-        
+   useEffect(() => {
+    fetchPatient();
+  }, [params.id]);
+
+   const fetchPatient = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await patientAPI.getById(params.id);
+      setPatient(data);
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to fetch patient:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-cyan-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading patient data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !patient) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Patient Not Found</h2>
+          <p className="text-gray-600 mb-4">{error || 'This patient does not exist'}</p>
+          <Link
+            href="/patients"
+            className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 inline-flex items-center"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Patients
+          </Link>
+        </div>
+      </div>
+    );
+  }
         // Fetch patient data and FHIR resources in parallel
         const [patientData, observationsData, conditionsData, medicationsData] = await Promise.all([
           patientAPI.getById(params.id),
